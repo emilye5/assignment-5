@@ -1,0 +1,9 @@
+---
+title: "Assignment 5A: Airline Delays"
+author: "Emily El Mouaquite"
+format: html
+editor: visual
+---
+
+## Approach
+I will begin by recreating the airline delay chart and exporting it to a .CSV file. I will then be able to use tidyr and dplyr to transform the data from wide to long by creating airline, status (on time/ delayed), city and flight count columns, and compare delays/ arrival rates for airlines and cities. 
