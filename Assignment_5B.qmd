@@ -1,0 +1,9 @@
+---
+title: "Assignment 5B: ELO Calculations"
+author: "Emily El Mouaquite"
+format: html
+editor: visual
+---
+
+## Approach
+To evaluate player performance relative to expectation for the chess players from the Project 1 data, I will use the ELO expected score formula based on how it is implemented here: https://www.kaggle.com/discussions/getting-started/216048. I will loop through each player to calculate their expected score per game. Then, I will be able to calculate their total expected score, as well as calculate the difference between their expected and actual scores. To conclude, I will be able to sort the players by performance difference to see who the most overperformed and underperformed players are. 
