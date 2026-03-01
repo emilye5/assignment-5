@@ -1,9 +1,60 @@
 ---
-title: "Assignment 5B: ELO Calculations"
+title: "Assignment 5B: Elo Calculations"
 author: "Emily El Mouaquite"
 format: html
 editor: visual
 ---
 
 ## Approach
-To evaluate player performance relative to expectation for the chess players from the Project 1 data, I will use the ELO expected score formula based on how it is implemented here: https://www.kaggle.com/discussions/getting-started/216048. I will loop through each player to calculate their expected score per game. Then, I will be able to calculate their total expected score, as well as calculate the difference between their expected and actual scores. To conclude, I will be able to sort the players by performance difference to see who the most overperformed and underperformed players are. 
+
+To evaluate player performance relative to expectation for the chess players from the Project 1 data, I will use the Elo expected score formula based on how it is implemented here: https://mattmazzola.medium.com/implementing-the-elo-rating-system-a085f178e065. I will loop through each player to calculate their expected score per game. Then, I will be able to calculate their total expected score, as well as calculate the difference between their expected and actual scores. To conclude, I will be able to sort the players by performance difference to see who the most overperformed and underperformed players are.
+
+## Code Base
+
+```{r}
+# load dplyr library 
+library(dplyr)
+```
+
+The data needed for this assignment can be found in the .CSV file generated from last week's Project 1.
+```{r}
+# read CSV
+df <- read.csv("tournament_info.csv")
+```
+
+### Elo Formula:
+
+The loop that I mentioned in my approach is not necessary as I already have the average opponent rating of each player calculated, and included within the dataset. Thus, the Elo formula can be applied directly through the creation of a new expected score column. 
+```{r}
+#Elo formula (results in expected score)
+df$expected_score <- 1 / (1 +10^((df$avg_opps_rating - df$pre_rating)/400)) * 7
+
+head(df)
+```
+
+A new difference column is also needed in order to determine who the top 5 over and under performers were. 
+```{r}
+#difference 
+df$difference <- df$total_points - df$expected_score
+
+head(df)
+```
+
+### Overperformers:
+
+```{r}
+df %>%
+  arrange(desc(difference)) %>%
+  slice_head(n = 5)
+```
+
+### Underperformers:
+
+```{r}
+df %>%
+  arrange(difference) %>%
+  slice_head(n = 5)
+```
+
+### Conclusion:
+The Elo formula is an interesting method of predicting score outcomes that I did not know existed prior to this assignment. I did not expect the differences for the top over and under performers to be so large. It makes me wonder how accurate this rating system is when used in practice, and if such large margins of difference between expected scores and earned scores are common in chess tournaments. To extend this work, one might redo the Elo formula with a different scale factor. For instance, I would predict that using a larger number would mean that expected scores have less extreme values because the differences in points earned between opponents is reduced, and using a smaller scaling factor would do the opposite. It might be interesting to see how the values in the difference column would be affected by this. 
