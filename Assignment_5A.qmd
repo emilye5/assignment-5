@@ -7,3 +7,95 @@ editor: visual
 
 ## Approach
 I will begin by recreating the airline delay chart and exporting it to a .CSV file. I will then be able to use tidyr and dplyr to transform the data from wide to long by creating airline, status (on time/ delayed), city and flight count columns, and compare delays/ arrival rates for airlines and cities. 
+
+## Code Base
+```{r}
+# load libraries
+library(tidyverse)
+```
+
+I created the airline delay .CSV file using Excel, and will begin by reading it. 
+```{r}
+# read csv
+airline_df <- read.csv("airline.csv")
+```
+
+Populate missing cells by adding column names. 
+```{r}
+# add airline and status column names
+colnames(airline_df) <- c(
+  "airline",
+  "status",
+  "Los_Angeles",
+  "Phoenix",
+  "San_Diego",
+  "San_Francisco",
+  "Seattle"
+)
+```
+
+Remove blank row.
+```{r}
+# make sure all blank cells are NA
+airline_df[airline_df == ""] <- NA
+# remove row 3
+airline_df <- airline_df[-3, ]
+```
+
+Populate the rest of the NA cells by filling the airline column. 
+```{r}
+airline_df <- airline_df %>%
+  fill(airline)
+```
+
+Convert the data from wide to long.
+```{r}
+# make sure all values are numeric, and remove commas
+airline_df<- airline_df %>%
+  mutate(
+    across(Los_Angeles:Seattle,
+           ~ as.numeric(gsub(",", "", .)))
+  )
+# use pivot_longer to change each city column to a singular cities column, and a flight count column 
+airline_df <- airline_df %>%
+  pivot_longer(
+    cols = Los_Angeles:Seattle,
+    names_to = "city",
+    values_to = "flight_count"
+  )
+```
+
+Delay rate comparison between airlines.
+```{r}
+delays <- airline_df %>%
+  group_by(airline) %>%
+  summarise(
+    delayed_count = sum(flight_count[status == "delayed"]),
+    total_count = sum(flight_count)
+  ) %>%
+  mutate(delay_percentage = round((delayed_count / total_count) * 100, 1))
+
+delays
+```
+
+This shows that Alaska had a higher rate of delayed flights than AM West overall. 
+
+On time arrival comparison between airlines across cities.
+```{r}
+arrivals_by_city <- airline_df %>%
+  group_by(airline, city) %>%
+  summarise(
+    arrival_count = sum(flight_count[status == "on time"]),
+    total_count = sum(flight_count)
+  ) %>%
+  mutate(arrival_percentage = round((arrival_count / total_count) * 100, 1))  %>%
+ungroup() %>%
+  arrange(desc(arrival_percentage))
+
+arrivals_by_city
+```
+
+This table shows that, for both airlines, the city with the highest rate of on time flights was Phoenix, and the city with the lowest rate of on time flights was San Francisco. It also shows that Alaska has a higher rate of on time flights than AM West in every city.
+
+### Conclusion
+When comparing the airlines AM West and Alaska, a discrepancy rises in that Alaska has a higher rate of delayed flights overall, but when comparing on time flight rates by city, Alaska also has a higher rate of on time flights in every city. This can be explained by Simpson's Paradox, which is when groups of data show different trends when reversed. Since AM West operates a higher number of flights in each city with lower overall delays, its overall delay rate appears lower, even though Alaska performs better in every individual city. To verify this work, one could hand calculate the counts and percentages to compare them to the table outputs. 
